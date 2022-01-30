@@ -14,6 +14,7 @@ const constants = require("../../scripts/constant/constant");
 const tokens = require("../../scripts/constant/tokens");
 
 const contracts = require("./notional.contracts");
+const helpers = require("./notional.helpers");
 
 const connectV2NotionalArtifacts = require("../../artifacts/contracts/mainnet/connectors/notional/main.sol/ConnectV2Notional.json");
 const { BigNumber } = require("ethers");
@@ -22,7 +23,6 @@ const DAI_WHALE = "0x6dfaf865a93d3b0b5cfd1b4db192d1505676645b";
 const CDAI_WHALE = "0x33b890d6574172e93e58528cd99123a88c0756e9";
 const ETH_WHALE = "0x7D24796f7dDB17d73e8B1d0A3bbD103FBA2cb2FE";
 const CETH_WHALE = "0x1a1cd9c606727a7400bb2da6e4d5c70db5b4cade";
-const INSTADAPP_BASIC_V1_CONNECTOR = "Basic-v1";
 
 describe("Notional", function () {
     const connectorName = "NOTIONAL-TEST-A"
@@ -32,10 +32,12 @@ describe("Notional", function () {
     let instaConnectorsV2;
     let connector;
     let notional;
-    let dai;
-    let cdai;
+    let daiToken;
+    let cdaiToken;
     let cethToken;
     let weth;
+    let daiWhale;
+    let cdaiWhale;
     let cethWhale;
 
     const wallets = provider.getWallets()
@@ -82,16 +84,18 @@ describe("Notional", function () {
             contracts.NOTIONAL_CONTRACT_ABI,
             ethers.provider
         );
-        dai = new ethers.Contract(
+        daiToken = new ethers.Contract(
             contracts.DAI_TOKEN_ADDRESS,
             contracts.ERC20_TOKEN_ABI,
             ethers.provider
         );
-        cdai = new ethers.Contract(
+        daiWhale = await ethers.getSigner(DAI_WHALE);
+        cdaiToken = new ethers.Contract(
             contracts.CDAI_TOKEN_ADDRESS,
             contracts.ERC20_TOKEN_ABI,
             ethers.provider
         );
+        cdaiWhale = await ethers.getSigner(CDAI_WHALE);
         cethToken = new ethers.Contract(
             contracts.CETH_TOKEN_ADDRESS,
             contracts.ERC20_TOKEN_ABI,
@@ -113,67 +117,74 @@ describe("Notional", function () {
                 value: ethers.utils.parseEther("10")
             });
             const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
-            const spells = [
-                {
-                    connector: connectorName,
-                    method: "depositCollateral",
-                    args: [1, true, depositAmount, 0, 0]
-                }
-            ];
-
-            const tx = await dsaWallet0.connect(wallet0).cast(...encodeSpells(spells), wallet1.address);
-            await tx.wait()
-
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
             const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
-
-            console.log(JSON.stringify(bal));
-
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.lte(ethers.utils.parseEther("9"));
+            // balance in internal asset precision
+            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
-        it("test_deposit_CETH_underlying", async function () {
+        it("test_deposit_ETH_asset", async function () {
             const transferAmount = ethers.utils.parseUnits("2", 8);
             const depositAmount = ethers.utils.parseUnits("1", 8);
             await cethToken.connect(cethWhale).transfer(wallet0.address, transferAmount);
             await cethToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
-
-            const spells = [
-                {
-                    connector: "BASIC-A",
-                    method: "deposit",
-                    args: [cethToken.address, depositAmount, 0, 0]
-                }/*,
-                {
-                    connector: connectorName,
-                    method: "depositCollateral",
-                    args: [1, false, depositAmount, 0, 0]
-                }*/
-            ];
-
-            const tx = await dsaWallet0.connect(wallet0).cast(...encodeSpells(spells), wallet1.address);
-            await tx.wait()
-
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cethToken.address, depositAmount);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, false);
             const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
-
-            console.log(JSON.stringify(bal));
-
-            //expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.lte(ethers.utils.parseEther("9"));
+            // balance in internal asset precision
+            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("100000000", 0));
+            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
-        /*it("test_deposit_ETH_underlying_and_lend", async function () {
-            const lendAmount = ethers.utils.parseUnits("1", 8); // 1 ETH (internal precision)
-            const depositAmount = ethers.utils.parseEther("1") // 1 ETH
-            const spells = [
-                {
-                    connector: connectorName,
-                    method: "depositAndLend",
-                    args: [1, depositAmount, true, 1, lendAmount, 0, 0]
-                }
-            ]
+        it("test_deposit_DAI_underlying", async function () {
+            const transferAmount = ethers.utils.parseUnits("2000", 18);
+            const depositAmount = ethers.utils.parseUnits("1000", 18);
+            await daiToken.connect(daiWhale).transfer(wallet0.address, transferAmount);
+            await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 2, depositAmount, true);
+            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            // balance in internal asset precision
+            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("4500000000000", 0));
+            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+        });
 
-            const tx = await dsaWallet0.connect(wallet0).cast(...encodeSpells(spells), wallet1.address)
-            await tx.wait()
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.lte(ethers.utils.parseEther("9"));
-        }); */
+        it("test_deposit_DAI_asset", async function () {
+            const transferAmount = ethers.utils.parseUnits("2000", 8);
+            const depositAmount = ethers.utils.parseUnits("1000", 8);
+            await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, transferAmount);
+            await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
+            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            // balance in internal asset precision
+            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("100000000000", 0));
+            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+        });
+
+        it("test_deposit_ETH_underlying_and_mint_ntoken", async function () {
+            await wallet0.sendTransaction({
+                to: dsaWallet0.address,
+                value: ethers.utils.parseEther("10")
+            });
+            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
+            const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
+            expect(bal[0]).to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[1]).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+        });
+    });
+
+    describe("Lend Tests", function () {
+
+    });
+
+    describe("Borrow Tests", function () {
+
+    });
+
+    describe("Withdraw Tests", function () {
+
     });
 });
