@@ -28,6 +28,9 @@ const DEPOSIT_ASSET = 1;
 const DEPOSIT_UNDERLYING = 2;
 const DEPOSIT_ASSET_MINT_NTOKEN = 3;
 const DEPOSIT_UNDERLYING_MINT_NTOKEN = 4;
+const ETH_ID = 1;
+const DAI_ID = 2;
+const MARKET_3M = 1;
 
 describe("Notional", function () {
     const connectorName = "NOTIONAL-TEST-A"
@@ -120,12 +123,12 @@ describe("Notional", function () {
                 to: dsaWallet0.address,
                 value: ethers.utils.parseEther("10")
             });
-            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
-            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
-            const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
+            const depositAmount = ethers.utils.parseEther("1");
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, ETH_ID, depositAmount, true);
+            const bal = await notional.callStatic.getAccountBalance(ETH_ID, dsaWallet0.address);
             // balance in internal asset precision
-            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
-            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[0], "expect at least 49 cETH").to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+            expect(bal[1], "expect 0 nETH").to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
         it("test_deposit_ETH_asset", async function () {
@@ -133,11 +136,11 @@ describe("Notional", function () {
             await cethToken.connect(cethWhale).transfer(wallet0.address, depositAmount);
             await cethToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cethToken.address, depositAmount);
-            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, false);
-            const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, ETH_ID, depositAmount, false);
+            const bal = await notional.callStatic.getAccountBalance(ETH_ID, dsaWallet0.address);
             // balance in internal asset precision
-            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("100000000", 0));
-            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[0], "expect at least 1 cETH").to.be.gte(ethers.utils.parseUnits("100000000", 0));
+            expect(bal[1], "expect 0 nETH").to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
         it("test_deposit_DAI_underlying", async function () {
@@ -145,11 +148,11 @@ describe("Notional", function () {
             await daiToken.connect(daiWhale).transfer(wallet0.address, depositAmount);
             await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
-            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 2, depositAmount, true);
-            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, DAI_ID, depositAmount, true);
+            const bal = await notional.callStatic.getAccountBalance(DAI_ID, dsaWallet0.address);
             // balance in internal asset precision
-            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("4500000000000", 0));
-            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[0], "expect at least 45000 cDAI").to.be.gte(ethers.utils.parseUnits("4500000000000", 0));
+            expect(bal[1], "expect 0 nDAI").to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
         it("test_deposit_DAI_asset", async function () {
@@ -157,11 +160,11 @@ describe("Notional", function () {
             await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
-            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
-            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, DAI_ID, depositAmount, false);
+            const bal = await notional.callStatic.getAccountBalance(DAI_ID, dsaWallet0.address);
             // balance in internal asset precision
-            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("100000000000", 0));
-            expect(bal[1]).to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[0], "expect at least 1000 cDAI").to.be.gte(ethers.utils.parseUnits("100000000000", 0));
+            expect(bal[1], "expect 0 nDAI").to.be.equal(ethers.utils.parseUnits("0", 0));
         });
 
         it("test_deposit_ETH_underlying_and_mint_ntoken", async function () {
@@ -169,11 +172,11 @@ describe("Notional", function () {
                 to: dsaWallet0.address,
                 value: ethers.utils.parseEther("10")
             });
-            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
-            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
-            const bal = await notional.callStatic.getAccountBalance(1, dsaWallet0.address);
-            expect(bal[0]).to.be.equal(ethers.utils.parseUnits("0", 0));
-            expect(bal[1]).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+            const depositAmount = ethers.utils.parseEther("1");
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, ETH_ID, depositAmount, true);
+            const bal = await notional.callStatic.getAccountBalance(ETH_ID, dsaWallet0.address);
+            expect(bal[0], "expect 0 balance").to.be.equal(ethers.utils.parseUnits("0", 0));
+            expect(bal[1], "expect at least 49 nETH").to.be.gte(ethers.utils.parseUnits("4900000000", 0));
         });
     });
 
@@ -184,10 +187,10 @@ describe("Notional", function () {
                 value: ethers.utils.parseEther("10")
             });
             const depositAmount = ethers.utils.parseEther("10");
-            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, 1, true, depositAmount, 1, 9e8, 0);
+            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, ETH_ID, true, depositAmount, MARKET_3M, 9e8, 0);
             const portfolio = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(portfolio.length).to.be.equal(1);
-            expect(portfolio[0][3]).to.be.gte(ethers.utils.parseUnits("900000000", 0));
+            expect(portfolio.length, "expect 1 lending position").to.be.equal(1);
+            expect(portfolio[0][3], "expect 9 fETH").to.be.gte(ethers.utils.parseUnits("900000000", 0));
         });
 
         it("test_deposit_ETH_asset_and_lend", async function () {
@@ -195,10 +198,10 @@ describe("Notional", function () {
             await cethToken.connect(cethWhale).transfer(wallet0.address, depositAmount);
             await cethToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cethToken.address, depositAmount);
-            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, 1, false, depositAmount, 1, 0.01e8, 0);
+            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, ETH_ID, false, depositAmount, MARKET_3M, 0.01e8, 0);
             const portfolio = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(portfolio.length).to.be.equal(1);
-            expect(portfolio[0][3]).to.be.gte(ethers.utils.parseUnits("1000000", 0));
+            expect(portfolio.length, "expect 1 lending position").to.be.equal(1);
+            expect(portfolio[0][3], "expect 0.01 fETH").to.be.gte(ethers.utils.parseUnits("1000000", 0));
         });
 
         it("test_deposit_DAI_underlying_and_lend", async function () {
@@ -206,10 +209,10 @@ describe("Notional", function () {
             await daiToken.connect(daiWhale).transfer(wallet0.address, depositAmount);
             await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
-            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, 2, true, depositAmount, 1, 100e8, 0);
+            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, DAI_ID, true, depositAmount, MARKET_3M, 100e8, 0);
             const portfolio = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(portfolio.length).to.be.equal(1);
-            expect(portfolio[0][3]).to.be.gte(ethers.utils.parseUnits("10000000000", 0));
+            expect(portfolio.length, "expect 1 lending position").to.be.equal(1);
+            expect(portfolio[0][3], "expect 100 fDAI").to.be.gte(ethers.utils.parseUnits("10000000000", 0));
         });
 
         it("test_deposit_DAI_asset_and_lend", async function () {
@@ -217,10 +220,10 @@ describe("Notional", function () {
             await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
-            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, 2, false, depositAmount, 1, 10e8, 0);
+            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, DAI_ID, false, depositAmount, MARKET_3M, 10e8, 0);
             const portfolio = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(portfolio.length).to.be.equal(1);
-            expect(portfolio[0][3]).to.be.gte(ethers.utils.parseUnits("1000000000", 0));
+            expect(portfolio.length, "expect 1 lending position").to.be.equal(1);
+            expect(portfolio[0][3], "expect 10 fDAI").to.be.gte(ethers.utils.parseUnits("1000000000", 0));
         });
 
         it("test_withdraw_lend_ETH", async function () {
@@ -229,13 +232,13 @@ describe("Notional", function () {
                 value: ethers.utils.parseEther("10")
             });
             const depositAmount = ethers.utils.parseEther("10");
-            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, 1, true, depositAmount, 1, 9e8, 0);
+            await helpers.depositAndLend(dsaWallet0, wallet0, wallet1, ETH_ID, true, depositAmount, MARKET_3M, 9e8, 0);
             const before = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(before.length).to.be.equal(1);
-            expect(before[0][3]).to.be.gte(ethers.utils.parseUnits("900000000", 0));
-            await helpers.withdrawLend(dsaWallet0, wallet0, wallet1, 1, 1, 9e8, 0);
+            expect(before.length, "expect 1 lending position").to.be.equal(1);
+            expect(before[0][3], "expect 9 fETH").to.be.gte(ethers.utils.parseUnits("900000000", 0));
+            await helpers.withdrawLend(dsaWallet0, wallet0, wallet1, ETH_ID, MARKET_3M, 9e8, 0);
             const after = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(after.length).to.be.equal(0);
+            expect(after.length, "expect lending position to be closed out").to.be.equal(0);
         });
     });
 
@@ -247,9 +250,12 @@ describe("Notional", function () {
             });
             const depositAmount = ethers.utils.parseEther("10");
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 1, DEPOSIT_UNDERLYING, depositAmount, 2, 1, 1000e8, 0, true
+                dsaWallet0, wallet0, wallet1, ETH_ID, DEPOSIT_UNDERLYING, depositAmount, DAI_ID, MARKET_3M, 1000e8, 0, true
             );
-            expect(await daiToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("990"));
+            expect(
+                await daiToken.balanceOf(dsaWallet0.address), 
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseEther("990"));
         });
 
         it("test_deposit_ETH_and_borrow_DAI_asset", async function () {
@@ -259,9 +265,12 @@ describe("Notional", function () {
             });
             const depositAmount = ethers.utils.parseEther("10");
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 1, DEPOSIT_UNDERLYING, depositAmount, 2, 1, 1000e8, 0, false
+                dsaWallet0, wallet0, wallet1, ETH_ID, DEPOSIT_UNDERLYING, depositAmount, DAI_ID, MARKET_3M, 1000e8, 0, false
             );
-            expect(await cdaiToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("4500000000000", 0));
+            expect(
+                await cdaiToken.balanceOf(dsaWallet0.address),
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseUnits("4500000000000", 0));
         });
 
         it("test_deposit_DAI_underlying_and_borrow_ETH", async function () {
@@ -270,9 +279,12 @@ describe("Notional", function () {
             await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 2, DEPOSIT_UNDERLYING, depositAmount, 1, 1, 1e8, 0, true
+                dsaWallet0, wallet0, wallet1, DAI_ID, DEPOSIT_UNDERLYING, depositAmount, ETH_ID, MARKET_3M, 1e8, 0, true
             );
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("0.99"));
+            expect(
+                await ethers.provider.getBalance(dsaWallet0.address),
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseEther("0.99"));
         });
 
         it("test_deposit_DAI_asset_and_borrow_ETH", async function () {
@@ -281,9 +293,12 @@ describe("Notional", function () {
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 2, DEPOSIT_ASSET, depositAmount, 1, 1, 1e8, 0, true
+                dsaWallet0, wallet0, wallet1, DAI_ID, DEPOSIT_ASSET, depositAmount, ETH_ID, MARKET_3M, 1e8, 0, true
             );
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("0.99"));
+            expect(
+                await ethers.provider.getBalance(dsaWallet0.address), 
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseEther("0.99"));
         });
 
         it("test_mint_nDAI_underlying_and_borrow_ETH", async function () {
@@ -292,9 +307,12 @@ describe("Notional", function () {
             await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 2, DEPOSIT_UNDERLYING_MINT_NTOKEN, depositAmount, 1, 1, 1e8, 0, true
+                dsaWallet0, wallet0, wallet1, DAI_ID, DEPOSIT_UNDERLYING_MINT_NTOKEN, depositAmount, ETH_ID, MARKET_3M, 1e8, 0, true
             );
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("0.99"));
+            expect(
+                await ethers.provider.getBalance(dsaWallet0.address),
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseEther("0.99"));
         });
 
         it("test_mint_nDAI_asset_and_borrow_ETH", async function () {
@@ -303,9 +321,12 @@ describe("Notional", function () {
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 2, DEPOSIT_ASSET_MINT_NTOKEN, depositAmount, 1, 1, 1e8, 0, true
+                dsaWallet0, wallet0, wallet1, DAI_ID, DEPOSIT_ASSET_MINT_NTOKEN, depositAmount, ETH_ID, MARKET_3M, 1e8, 0, true
             );
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("0.99"));
+            expect(
+                await ethers.provider.getBalance(dsaWallet0.address),
+                "expect DSA wallet to contain borrowed balance minus fees"
+            ).to.be.gte(ethers.utils.parseEther("0.99"));
         });
     });
 
@@ -315,10 +336,13 @@ describe("Notional", function () {
                 to: dsaWallet0.address,
                 value: ethers.utils.parseEther("10")
             });
-            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
+            const depositAmount = ethers.utils.parseEther("1");
             await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
             await helpers.withdrawCollateral(dsaWallet0, wallet0, wallet1, 1, ethers.constants.MaxUint256, true);
-            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("10"));
+            expect(
+                await ethers.provider.getBalance(dsaWallet0.address),
+                "expect DSA wallet to contain underlying funds"
+            ).to.be.gte(ethers.utils.parseEther("10"));
         });
 
         it("test_withdraw_ETH_asset", async function () {
@@ -326,10 +350,13 @@ describe("Notional", function () {
                 to: dsaWallet0.address,
                 value: ethers.utils.parseEther("10")
             });
-            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
-            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
-            await helpers.withdrawCollateral(dsaWallet0, wallet0, wallet1, 1, ethers.constants.MaxUint256, false);
-            expect(await cethToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+            const depositAmount = ethers.utils.parseEther("1");
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, ETH_ID, depositAmount, true);
+            await helpers.withdrawCollateral(dsaWallet0, wallet0, wallet1, ETH_ID, ethers.constants.MaxUint256, false);
+            expect(
+                await cethToken.balanceOf(dsaWallet0.address),
+                "expect DSA wallet to contain cToken funds"
+            ).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
         });
 
         it("test_redeem_DAI_raw", async function () {
@@ -337,11 +364,11 @@ describe("Notional", function () {
             await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
-            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
-            await helpers.redeemNTokenRaw(dsaWallet0, wallet0, wallet1, 2, true, MaxUint96)
-            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
-            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("99000000000", 0));
-            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, DAI_ID, depositAmount, false);
+            await helpers.redeemNTokenRaw(dsaWallet0, wallet0, wallet1, DAI_ID, true, MaxUint96)
+            const bal = await notional.callStatic.getAccountBalance(DAI_ID, dsaWallet0.address);
+            expect(bal[0], "expect cDAI balance after redemption").to.be.gte(ethers.utils.parseUnits("99000000000", 0));
+            expect(bal[1], "expect 0 nDAI").to.be.equal(ethers.utils.parseEther("0"));
         });
 
         it("test_redeem_DAI_and_withdraw_redeem", async function () {
@@ -349,11 +376,11 @@ describe("Notional", function () {
             await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
-            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
-            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, 2, MaxUint96, ethers.constants.MaxUint256, true);
-            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
-            expect(bal[0]).to.be.equal(ethers.utils.parseEther("0"));
-            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, DAI_ID, depositAmount, false);
+            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, DAI_ID, MaxUint96, ethers.constants.MaxUint256, true);
+            const bal = await notional.callStatic.getAccountBalance(DAI_ID, dsaWallet0.address);
+            expect(bal[0], "expect 0 cDAI balance").to.be.equal(ethers.utils.parseEther("0"));
+            expect(bal[1], "expect 0 nDAI balance").to.be.equal(ethers.utils.parseEther("0"));
         });
 
         it("test_redeem_DAI_and_withdraw_no_redeem", async function () {
@@ -361,13 +388,16 @@ describe("Notional", function () {
             await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
             await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
-            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, DAI_ID, depositAmount, false);
             expect(await cdaiToken.balanceOf(dsaWallet0.address)).to.be.equal(ethers.utils.parseEther("0"));
-            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, 2, MaxUint96, ethers.constants.MaxUint256, false);
-            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
-            expect(bal[0]).to.be.equal(ethers.utils.parseEther("0"));
-            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
-            expect(await cdaiToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("99000000000", 0));
+            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, DAI_ID, MaxUint96, ethers.constants.MaxUint256, false);
+            const bal = await notional.callStatic.getAccountBalance(DAI_ID, dsaWallet0.address);
+            expect(bal[0], "expect 0 cDAI balance").to.be.equal(ethers.utils.parseEther("0"));
+            expect(bal[1], "expect 0 nDAI balance").to.be.equal(ethers.utils.parseEther("0"));
+            expect(
+                await cdaiToken.balanceOf(dsaWallet0.address),
+                "expect DSA wallet to contain cToken funds"
+            ).to.be.gte(ethers.utils.parseUnits("99000000000", 0));
         });
 
         it("test_redeem_DAI_and_deleverage", async function () {
@@ -376,17 +406,17 @@ describe("Notional", function () {
             await daiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
             await helpers.depositERC20(dsaWallet0, wallet0, wallet1, daiToken.address, depositAmount);
             await helpers.depositCollateralBorrowAndWithdraw(
-                dsaWallet0, wallet0, wallet1, 2, DEPOSIT_UNDERLYING, depositAmount, 1, 1, 1e8, 0, true
+                dsaWallet0, wallet0, wallet1, DAI_ID, DEPOSIT_UNDERLYING, depositAmount, ETH_ID, MARKET_3M, 1e8, 0, true
             );
             const bal = await ethers.provider.getBalance(dsaWallet0.address);
-            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 1, bal, true);
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, ETH_ID, bal, true);
             const before = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(before.length).to.be.equal(1);
-            expect(before[0][3]).to.be.lte(ethers.utils.parseUnits("-100000000", 0));
-            await helpers.redeemNTokenAndDeleverage(dsaWallet0, wallet0, wallet1, 1, MaxUint96, 1, 0.98e8, 0);
+            expect(before.length, "expect 1 fDAI debt position").to.be.equal(1);
+            expect(before[0][3], "expect fDAI debt position to equal borrow amount").to.be.lte(ethers.utils.parseUnits("-100000000", 0));
+            await helpers.redeemNTokenAndDeleverage(dsaWallet0, wallet0, wallet1, ETH_ID, MaxUint96, MARKET_3M, 0.98e8, 0);
             const after = await notional.getAccountPortfolio(dsaWallet0.address);
-            expect(after.length).to.be.equal(1);
-            expect(after[0][3]).to.be.lte(ethers.utils.parseUnits("-2000000", 0));
+            expect(after.length, "expect 1 fDAI debt position after deleverage").to.be.equal(1);
+            expect(after[0][3], "expect fDAI debt balance to go down after deleverage").to.be.lte(ethers.utils.parseUnits("-2000000", 0));
         });
     });
 });
