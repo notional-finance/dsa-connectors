@@ -34,6 +34,57 @@ const NOTIONAL_CONTRACT_ABI = [
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "getAccountPortfolio",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "currencyId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maturity",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "assetType",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "int256",
+                        "name": "notional",
+                        "type": "int256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "storageSlot",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "enum AssetStorageState",
+                        "name": "storageState",
+                        "type": "uint8"
+                    }
+                ],
+                "internalType": "struct PortfolioAsset[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ];
 
@@ -42,9 +93,9 @@ const DAI_TOKEN_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const CDAI_TOKEN_ADDRESS = "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643";
 const CETH_TOKEN_ADDRESS = "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5";
 const ERC20_TOKEN_ABI = [
-  "function transfer(address _to, uint256 _value) public returns (bool success)",
-  "function balanceOf(address account) external view returns (uint256)",
-  "function approve(address spender, uint256 amount) external returns (bool)",
+    "function transfer(address _to, uint256 _value) public returns (bool success)",
+    "function balanceOf(address account) external view returns (uint256)",
+    "function approve(address spender, uint256 amount) external returns (bool)",
 ];
 
 module.exports = {

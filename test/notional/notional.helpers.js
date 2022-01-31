@@ -31,7 +31,7 @@ const depositAndLend = async (dsa, authority, referrer, currencyId, underlying, 
         {
             connector: "NOTIONAL-TEST-A",
             method: "depositAndLend",
-            args: [currencyId, amount, underlying, market, fcash, minRate, 0, 0]
+            args: [currencyId, amount, underlying, market, fcash, minRate, 0]
         }
     ];
 
@@ -83,7 +83,7 @@ const redeemNTokenAndDeleverage = async (dsa, authority, referrer, currencyId, t
         {
             connector: "NOTIONAL-TEST-A",
             method: "redeemNTokenAndDeleverage",
-            args: [currencyId, tokensToRedeem, marketIndex, fCashAmount, minLendRate, 0, 0]
+            args: [currencyId, tokensToRedeem, marketIndex, fCashAmount, minLendRate, 0]
         }
     ];
 
@@ -127,6 +127,19 @@ const depositCollateralBorrowAndWithdraw = async (
     await tx.wait()
 };
 
+const withdrawLend = async (dsa, authority, referrer, currencyId, marketIndex, fCashAmount, maxBorrowRate) => {
+    const spells = [
+        {
+            connector: "NOTIONAL-TEST-A",
+            method: "withdrawLend",
+            args: [currencyId, marketIndex, fCashAmount, maxBorrowRate, 0]
+        }
+    ];
+
+    const tx = await dsa.connect(authority).cast(...encodeSpells(spells), referrer.address);
+    await tx.wait()
+};
+
 const depositERC20 = async (dsa, authority, referrer, token, amount) => {
     const spells = [
         {
@@ -140,42 +153,15 @@ const depositERC20 = async (dsa, authority, referrer, token, amount) => {
     await tx.wait()
 };
 
-const withdrawLend = async (dsa, authority, referrer, currencyId, marketIndex, fCashAmount, maxBorrowRate) => {
-    const spells = [
-        {
-            connector: "BASIC-A",
-            method: "withdrawLend",
-            args: [currencyId, marketIndex, fCashAmount, maxBorrowRate, 0, 0]
-        }
-    ];
-
-    const tx = await dsa.connect(authority).cast(...encodeSpells(spells), referrer.address);
-    await tx.wait()
-};
-
-const repayBorrow = async (dsa, authority, referrer, currencyId, marketIndex, netCashToAccount, minLendRate) => {
-    const spells = [
-        {
-            connector: "BASIC-A",
-            method: "repayBorrow",
-            args: [currencyId, marketIndex, netCashToAccount, minLendRate, 0, 0]
-        }
-    ];
-
-    const tx = await dsa.connect(authority).cast(...encodeSpells(spells), referrer.address);
-    await tx.wait()
-};
-
 module.exports = {
     depositCollteral,
     depositAndMintNToken,
     depositAndLend,
     withdrawCollateral,
+    withdrawLend,
     redeemNTokenRaw,
     redeemNTokenAndWithdraw,
     redeemNTokenAndDeleverage,
     depositCollateralBorrowAndWithdraw,
-    depositERC20,
-    withdrawLend,
-    repayBorrow
+    depositERC20
 };
