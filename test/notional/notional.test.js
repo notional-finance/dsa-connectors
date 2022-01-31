@@ -23,6 +23,7 @@ const DAI_WHALE = "0x6dfaf865a93d3b0b5cfd1b4db192d1505676645b";
 const CDAI_WHALE = "0x33b890d6574172e93e58528cd99123a88c0756e9";
 const ETH_WHALE = "0x7D24796f7dDB17d73e8B1d0A3bbD103FBA2cb2FE";
 const CETH_WHALE = "0x1a1cd9c606727a7400bb2da6e4d5c70db5b4cade";
+const MaxUint96 = BigNumber.from("0xffffffffffffffffffffffff");
 
 describe("Notional", function () {
     const connectorName = "NOTIONAL-TEST-A"
@@ -185,6 +186,62 @@ describe("Notional", function () {
     });
 
     describe("Withdraw Tests", function () {
-
+        it("test_withdraw_ETH_underlying", async function () {
+            await wallet0.sendTransaction({
+                to: dsaWallet0.address,
+                value: ethers.utils.parseEther("10")
+            });
+            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
+            await helpers.withdrawCollateral(dsaWallet0, wallet0, wallet1, 1, ethers.constants.MaxUint256, true);
+            expect(await ethers.provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseEther("10"));
+        });
+        it("test_withdraw_ETH_asset", async function () {
+            await wallet0.sendTransaction({
+                to: dsaWallet0.address,
+                value: ethers.utils.parseEther("10")
+            });
+            const depositAmount = ethers.utils.parseEther("1"); // 1 ETH
+            await helpers.depositCollteral(dsaWallet0, wallet0, wallet1, 1, depositAmount, true);
+            await helpers.withdrawCollateral(dsaWallet0, wallet0, wallet1, 1, ethers.constants.MaxUint256, false);
+            expect(await cethToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("4900000000", 0));
+        });
+        it("test_redeem_DAI_raw", async function () {
+            const transferAmount = ethers.utils.parseUnits("2000", 8);
+            const depositAmount = ethers.utils.parseUnits("1000", 8);
+            await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, transferAmount);
+            await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
+            await helpers.redeemNTokenRaw(dsaWallet0, wallet0, wallet1, 2, true, MaxUint96)
+            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            expect(bal[0]).to.be.gte(ethers.utils.parseUnits("99000000000", 0));
+            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
+        });
+        it("test_redeem_DAI_and_withdraw_redeem", async function () {
+            const transferAmount = ethers.utils.parseUnits("2000", 8);
+            const depositAmount = ethers.utils.parseUnits("1000", 8);
+            await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, transferAmount);
+            await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
+            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, 2, MaxUint96, ethers.constants.MaxUint256, true);
+            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            expect(bal[0]).to.be.equal(ethers.utils.parseEther("0"));
+            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
+        });
+        it("test_redeem_DAI_and_withdraw_no_redeem", async function () {
+            const depositAmount = ethers.utils.parseUnits("1000", 8);
+            await cdaiToken.connect(cdaiWhale).transfer(wallet0.address, depositAmount);
+            await cdaiToken.connect(wallet0).approve(dsaWallet0.address, ethers.constants.MaxUint256);
+            await helpers.depositERC20(dsaWallet0, wallet0, wallet1, cdaiToken.address, depositAmount);
+            await helpers.depositAndMintNToken(dsaWallet0, wallet0, wallet1, 2, depositAmount, false);
+            expect(await cdaiToken.balanceOf(dsaWallet0.address)).to.be.equal(ethers.utils.parseEther("0"));
+            await helpers.redeemNTokenAndWithdraw(dsaWallet0, wallet0, wallet1, 2, MaxUint96, ethers.constants.MaxUint256, false);
+            const bal = await notional.callStatic.getAccountBalance(2, dsaWallet0.address);
+            expect(bal[0]).to.be.equal(ethers.utils.parseEther("0"));
+            expect(bal[1]).to.be.equal(ethers.utils.parseEther("0"));
+            expect(await cdaiToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("99000000000", 0));
+        });
     });
 });
