@@ -655,6 +655,108 @@ abstract contract NotionalResolver is Events, Helpers {
 		);
 	}
 
+	function mintSNoteFromBPT(uint256 bptAmount)
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		if (bptAmount == type(uint256).max)
+			bptAmount = bpt.balanceOf(address(this));
+
+		approve(bpt, address(staking), bptAmount);
+
+		staking.mintFromBPT(bptAmount);
+
+		_eventName = "LogMintSNoteFromBPT(address,uint256)";
+		_eventParam = abi.encode(address(this), bptAmount);
+	}
+
+	function mintSNoteFromETH(uint256 noteAmount, uint256 ethAmount, uint256 minBPT)
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		if (noteAmount == type(uint256).max)
+			noteAmount = note.balanceOf(address(this));
+
+		if (ethAmount == type(uint256).max)
+			ethAmount = address(this).balance;
+
+		approve(note, address(staking), noteAmount);
+
+		staking.mintFromETH{value: ethAmount}(noteAmount, minBPT);
+
+		_eventName = "LogMintSNoteFromETH(address,uint256,uint256,uint256)";
+		_eventParam = abi.encode(address(this), ethAmount, noteAmount, minBPT);
+	}
+
+	function mintSNoteFromWETH(
+		uint256 noteAmount,
+		uint256 wethAmount,
+		uint256 minBPT
+	)
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		if (noteAmount == type(uint256).max)
+			noteAmount = note.balanceOf(address(this));
+
+		if (wethAmount == type(uint256).max)
+			wethAmount = weth.balanceOf(address(this));
+
+		approve(note, address(staking), noteAmount);
+		approve(weth, address(staking), wethAmount);
+
+		staking.mintFromWETH(noteAmount, wethAmount, minBPT);
+
+		_eventName = "LogMintSNoteFromWETH(address,uint256,uint256,uint256)";
+		_eventParam = abi.encode(address(this), noteAmount, wethAmount, minBPT);
+	}
+
+	function startCoolDown()
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		staking.startCoolDown();
+
+		_eventName = "LogStartCoolDown(address)";
+		_eventParam = abi.encode(address(this));
+	}
+
+	function stopCoolDown()
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		staking.stopCoolDown();
+
+		_eventName = "LogStopCoolDown(address)";
+		_eventParam = abi.encode(address(this));
+	}
+
+	function redeemSNote(
+		uint256 sNOTEAmount,
+		uint256 minWETH,
+		uint256 minNOTE,
+		bool redeemWETH
+	)
+		external
+		payable
+		returns (string memory _eventName, bytes memory _eventParam)
+	{
+		if (sNOTEAmount == type(uint256).max)
+			sNOTEAmount = staking.balanceOf(address(this));
+
+		approve(staking, address(staking), sNOTEAmount);
+
+		staking.redeem(sNOTEAmount, minWETH, minNOTE, redeemWETH);
+
+		_eventName = "LogRedeemSNote(address,uint256,uint256,uint256,bool)";
+		_eventParam = abi.encode(address(this), sNOTEAmount, minWETH, minNOTE, redeemWETH);
+	}
+
 	/**
 	 * @notice Executes a number of batch actions on the account without getId or setId integration
 	 * @dev This method will allow the user to take almost any action on Notional but does not have any
