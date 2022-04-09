@@ -158,4 +158,3 @@ interface StakingInterface is TokenInterface {
 		bool redeemWETH
 	) external;
 }
-

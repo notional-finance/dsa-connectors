@@ -655,9 +655,9 @@ abstract contract NotionalResolver is Events, Helpers {
 		);
 	}
 
-    /// @notice Mints sNOTE from the underlying BPT token.
+	/// @notice Mints sNOTE from the underlying BPT token.
 	/// @dev Mints sNOTE from the underlying BPT token.
-    /// @param bptAmount is the amount of BPT to transfer from the msg.sender.
+	/// @param bptAmount is the amount of BPT to transfer from the msg.sender.
 	function mintSNoteFromBPT(uint256 bptAmount)
 		external
 		payable
@@ -674,11 +674,15 @@ abstract contract NotionalResolver is Events, Helpers {
 		_eventParam = abi.encode(address(this), bptAmount);
 	}
 
-    /// @notice Mints sNOTE from some amount of NOTE and ETH
+	/// @notice Mints sNOTE from some amount of NOTE and ETH
 	/// @dev Mints sNOTE from some amount of NOTE and ETH
-    /// @param noteAmount amount of NOTE to transfer into the sNOTE contract
-    /// @param minBPT slippage parameter to prevent front running
-	function mintSNoteFromETH(uint256 noteAmount, uint256 ethAmount, uint256 minBPT)
+	/// @param noteAmount amount of NOTE to transfer into the sNOTE contract
+	/// @param minBPT slippage parameter to prevent front running
+	function mintSNoteFromETH(
+		uint256 noteAmount,
+		uint256 ethAmount,
+		uint256 minBPT
+	)
 		external
 		payable
 		returns (string memory _eventName, bytes memory _eventParam)
@@ -686,22 +690,21 @@ abstract contract NotionalResolver is Events, Helpers {
 		if (noteAmount == type(uint256).max)
 			noteAmount = note.balanceOf(address(this));
 
-		if (ethAmount == type(uint256).max)
-			ethAmount = address(this).balance;
+		if (ethAmount == type(uint256).max) ethAmount = address(this).balance;
 
 		approve(note, address(staking), noteAmount);
 
-		staking.mintFromETH{value: ethAmount}(noteAmount, minBPT);
+		staking.mintFromETH{ value: ethAmount }(noteAmount, minBPT);
 
 		_eventName = "LogMintSNoteFromETH(address,uint256,uint256,uint256)";
 		_eventParam = abi.encode(address(this), ethAmount, noteAmount, minBPT);
 	}
 
-    /// @notice Mints sNOTE from some amount of NOTE and WETH
-    /// @dev Mints sNOTE from some amount of NOTE and WETH
-    /// @param noteAmount amount of NOTE to transfer into the sNOTE contract
-    /// @param wethAmount amount of WETH to transfer into the sNOTE contract
-    /// @param minBPT slippage parameter to prevent front running
+	/// @notice Mints sNOTE from some amount of NOTE and WETH
+	/// @dev Mints sNOTE from some amount of NOTE and WETH
+	/// @param noteAmount amount of NOTE to transfer into the sNOTE contract
+	/// @param wethAmount amount of WETH to transfer into the sNOTE contract
+	/// @param minBPT slippage parameter to prevent front running
 	function mintSNoteFromWETH(
 		uint256 noteAmount,
 		uint256 wethAmount,
@@ -726,7 +729,7 @@ abstract contract NotionalResolver is Events, Helpers {
 		_eventParam = abi.encode(address(this), noteAmount, wethAmount, minBPT);
 	}
 
-    /// @notice Begins a cool down period for the sender, this is required to redeem tokens
+	/// @notice Begins a cool down period for the sender, this is required to redeem tokens
 	/// @dev Current cool down period is set to 1296000 seconds (15 days)
 	function startCoolDown()
 		external
@@ -739,7 +742,7 @@ abstract contract NotionalResolver is Events, Helpers {
 		_eventParam = abi.encode(address(this));
 	}
 
-    /// @notice Stops a cool down for the sender
+	/// @notice Stops a cool down for the sender
 	/// @dev User must start another cool down period in order to call redeemSNote
 	function stopCoolDown()
 		external
@@ -752,12 +755,12 @@ abstract contract NotionalResolver is Events, Helpers {
 		_eventParam = abi.encode(address(this));
 	}
 
-    /// @notice Redeems some amount of sNOTE to underlying constituent tokens (ETH and NOTE).
-    /// @dev An account must have passed its cool down expiration before they can redeem
-    /// @param sNOTEAmount amount of sNOTE to redeem
-    /// @param minWETH slippage protection for ETH/WETH amount
-    /// @param minNOTE slippage protection for NOTE amount
-    /// @param redeemWETH true if redeeming to WETH to ETH
+	/// @notice Redeems some amount of sNOTE to underlying constituent tokens (ETH and NOTE).
+	/// @dev An account must have passed its cool down expiration before they can redeem
+	/// @param sNOTEAmount amount of sNOTE to redeem
+	/// @param minWETH slippage protection for ETH/WETH amount
+	/// @param minNOTE slippage protection for NOTE amount
+	/// @param redeemWETH true if redeeming to WETH to ETH
 	function redeemSNote(
 		uint256 sNOTEAmount,
 		uint256 minWETH,
@@ -776,7 +779,13 @@ abstract contract NotionalResolver is Events, Helpers {
 		staking.redeem(sNOTEAmount, minWETH, minNOTE, redeemWETH);
 
 		_eventName = "LogRedeemSNote(address,uint256,uint256,uint256,bool)";
-		_eventParam = abi.encode(address(this), sNOTEAmount, minWETH, minNOTE, redeemWETH);
+		_eventParam = abi.encode(
+			address(this),
+			sNOTEAmount,
+			minWETH,
+			minNOTE,
+			redeemWETH
+		);
 	}
 
 	/**

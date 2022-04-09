@@ -94,7 +94,7 @@ contract Events {
 	event LogMintSNoteFromETH(
 		address indexed account,
 		uint256 noteAmount,
-        uint256 ethAmount,
+		uint256 ethAmount,
 		uint256 minBPT
 	);
 
