@@ -266,7 +266,7 @@ const startCoolDown = async (
     const spells = [
         {
             connector: "NOTIONAL-TEST-A",
-            method: "startCooldown",
+            method: "startCoolDown",
             args: []
         }        
     ]
@@ -283,7 +283,7 @@ const stopCoolDown = async (
     const spells = [
         {
             connector: "NOTIONAL-TEST-A",
-            method: "stopCooldown",
+            method: "stopCoolDown",
             args: []
         }        
     ]
@@ -292,7 +292,7 @@ const stopCoolDown = async (
     await tx.wait()
 }
 
-const redeem = async (
+const redeemSNote = async (
     dsa: any,
     authority: any,
     referrer: any,
@@ -328,5 +328,5 @@ export default {
     mintSNoteFromBPT,
     startCoolDown,
     stopCoolDown,
-    redeem
+    redeemSNote
 };

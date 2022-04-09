@@ -43,6 +43,7 @@ describe("Notional", function () {
     let cethToken: any;
     let wethToken: any;
     let bptToken: any;
+    let noteToken: any;
     let daiWhale: any;
     let cdaiWhale: any;
     let cethWhale: any;
@@ -137,6 +138,11 @@ describe("Notional", function () {
             ethers.provider
         );
         bptWhale = await ethers.getSigner(BPT_WHALE);
+        noteToken = new ethers.Contract(
+            contracts.NOTE_TOKEN_ADDRESS,
+            contracts.ERC20_TOKEN_ABI,
+            ethers.provider
+        )
         dsaWallet0 = await buildDSAv2(wallet0.address);
     });
 
@@ -461,11 +467,47 @@ describe("Notional", function () {
         });
 
         it("test_unstake_success", async function () {
-
+            const depositAmount = ethers.utils.parseEther("1");
+            await wallet0.sendTransaction({
+                to: bptWhale.address,
+                value: depositAmount
+            });
+            await bptToken.connect(bptWhale).transfer(dsaWallet0.address, depositAmount);
+            await helpers.mintSNoteFromBPT(dsaWallet0, wallet0, wallet1, depositAmount);
+            await helpers.startCoolDown(dsaWallet0, wallet0, wallet1);
+            // Skip ahead 16 days
+            await hre.network.provider.send("evm_increaseTime", [1382400])
+            await hre.network.provider.send("evm_mine")
+            await helpers.redeemSNote(
+                dsaWallet0, 
+                wallet0, 
+                wallet1, 
+                ethers.constants.MaxUint256, 
+                BigNumber.from(0), 
+                BigNumber.from(0), 
+                true
+            );
+            expect(await noteToken.balanceOf(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("50000000000", 0));
+            expect(await provider.getBalance(dsaWallet0.address)).to.be.gte(ethers.utils.parseUnits("32500000000000000", 0))
         });
 
         it("test_unstable_failure", async function () {
-
+            const depositAmount = ethers.utils.parseEther("1");
+            await wallet0.sendTransaction({
+                to: bptWhale.address,
+                value: depositAmount
+            });
+            await bptToken.connect(bptWhale).transfer(dsaWallet0.address, depositAmount);
+            await helpers.mintSNoteFromBPT(dsaWallet0, wallet0, wallet1, depositAmount);
+            await expect(helpers.redeemSNote(
+                dsaWallet0, 
+                wallet0, 
+                wallet1, 
+                ethers.constants.MaxUint256, 
+                BigNumber.from(0), 
+                BigNumber.from(0), 
+                true
+            )).to.be.revertedWith("Not in Redemption Window");
         });
     });
 });

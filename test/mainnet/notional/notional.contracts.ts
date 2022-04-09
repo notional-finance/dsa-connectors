@@ -95,6 +95,7 @@ const DAI_TOKEN_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const CDAI_TOKEN_ADDRESS = "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643";
 const CETH_TOKEN_ADDRESS = "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5";
 const BPT_TOKEN_ADDRESS = "0x5122E01D819E58BB2E22528c0D68D310f0AA6FD7";
+const NOTE_TOKEN_ADDRESS = "0xCFEAead4947f0705A14ec42aC3D44129E1Ef3eD5";
 const ERC20_TOKEN_ABI = [
     "function transfer(address _to, uint256 _value) public returns (bool success)",
     "function balanceOf(address account) external view returns (uint256)",
@@ -110,5 +111,6 @@ export default {
     DAI_TOKEN_ADDRESS,
     CDAI_TOKEN_ADDRESS,
     CETH_TOKEN_ADDRESS,
+    NOTE_TOKEN_ADDRESS,
     ERC20_TOKEN_ABI
 };
