@@ -729,8 +729,8 @@ abstract contract NotionalResolver is Events, Helpers {
 		_eventParam = abi.encode(address(this), noteAmount, wethAmount, minBPT);
 	}
 
-	/// @notice Begins a cool down period for the sender, this is required to redeem tokens
-	/// @dev Current cool down period is set to 1296000 seconds (15 days)
+	/// @notice Begins a cool down period for the sender
+	/// @dev This is required to redeem tokens
 	function startCoolDown()
 		external
 		payable
@@ -773,8 +773,6 @@ abstract contract NotionalResolver is Events, Helpers {
 	{
 		if (sNOTEAmount == type(uint256).max)
 			sNOTEAmount = staking.balanceOf(address(this));
-
-		approve(staking, address(staking), sNOTEAmount);
 
 		staking.redeem(sNOTEAmount, minWETH, minNOTE, redeemWETH);
 
