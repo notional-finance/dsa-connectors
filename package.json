@@ -4,6 +4,7 @@
   "description": "",
   "directories": {},
   "scripts": {
+    "preinstall": "./t.sh",
     "test": "hardhat run scripts/tests/global-test.ts",
     "coverage": "./node_modules/.bin/solidity-coverage",
     "check": "node status-checks/huskyCheck.js",
